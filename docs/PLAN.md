@@ -621,7 +621,7 @@ class DBMonitorAdapter(IMonitorDataProvider):
 |-------|------|----------|------------|
 | Phase 1: 도메인 모델 구현 | 🟢 GREEN | — | tests/test_models.py |
 | Phase 2: MVC 골격 (인메모리) | 🟢 GREEN | POC1 | tests/test_controllers.py |
-| Phase 3: SQLite 영속성 계층 | ⬜ 미시작 | POC2 | tests/test_repositories.py, tests/test_db_manager.py |
+| Phase 3: SQLite 영속성 계층 | 🟢 GREEN | POC2 | tests/test_repositories.py, tests/test_db_manager.py |
 | Phase 4: 컨트롤러 DB 연동 | ⬜ 미시작 | POC1+2 | (기존 테스트로 검증) |
 | Phase 5: 더미 데이터 생성 도구 | ⬜ 미시작 | POC4 | tests/test_generators.py |
 | Phase 6: 데이터 모니터링 도구 | ⬜ 미시작 | POC3 | tests/test_monitor.py |
