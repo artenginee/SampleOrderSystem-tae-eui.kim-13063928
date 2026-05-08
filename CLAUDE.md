@@ -193,4 +193,6 @@ CONFIRMED →  RELEASE     (release)
 ## 현재 상태
 
 **Phase 1 — 완료 (🟢 GREEN)**  
-**Phase 2 — 진행 중**: `tests/test_controllers.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
+**Phase 2 — 완료 (🟢 GREEN)**  
+**Phase 3 — 완료 (🟢 GREEN)**  
+**Phase 4 — 진행 중**: 컨트롤러를 Repository 주입 방식으로 교체한다. 상세 계획은 `docs/PLAN.md` 참조.

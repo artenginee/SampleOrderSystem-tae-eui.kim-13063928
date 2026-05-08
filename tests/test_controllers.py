@@ -1,6 +1,6 @@
 """
-Phase 2: MVC 골격 테스트 (인메모리 컨트롤러)
-TDD RED 단계 — 실패하는 테스트를 먼저 작성한다.
+Phase 4: 컨트롤러 Repository 주입 방식 테스트
+기존 Phase 2 인메모리 테스트를 DB 기반 Repository 주입 구조로 수정한다.
 """
 import pytest
 from models.order import Order, OrderStatus
@@ -16,24 +16,28 @@ class TestSampleControllerCreate:
     """SampleController.create() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}           # 싱글톤 격리
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
 
     def test_create_returns_sample_instance(self):
         """create()는 Sample 인스턴스를 반환한다."""
         sample = self.ctrl.create("DRAM", 2.0, 0.8)
         assert isinstance(sample, Sample)
 
-    def test_create_first_id_is_s001(self):
-        """첫 번째 생성된 Sample의 ID는 'S001'이어야 한다."""
+    def test_create_first_id_is_assigned(self):
+        """첫 번째 생성된 Sample에 DB 할당 ID가 부여된다."""
         sample = self.ctrl.create("DRAM", 2.0, 0.8)
-        assert sample.id == "S001"
+        assert sample.id is not None and sample.id != ""
 
-    def test_create_second_id_is_s002(self):
-        """두 번째 생성된 Sample의 ID는 'S002'이어야 한다."""
-        self.ctrl.create("DRAM", 2.0, 0.8)
+    def test_create_second_id_is_different_from_first(self):
+        """두 번째 생성된 Sample의 ID는 첫 번째와 다르다."""
+        sample1 = self.ctrl.create("DRAM", 2.0, 0.8)
         sample2 = self.ctrl.create("NAND", 1.5, 0.7)
-        assert sample2.id == "S002"
+        assert sample1.id != sample2.id
 
     def test_create_stores_fields_correctly(self):
         """create()는 전달된 필드를 올바르게 저장한다."""
@@ -53,8 +57,12 @@ class TestSampleControllerFindAll:
     """SampleController.find_all() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
 
     def test_find_all_empty_initially(self):
         """생성 전에는 빈 리스트를 반환한다."""
@@ -72,8 +80,12 @@ class TestSampleControllerFindById:
     """SampleController.find_by_id() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
 
     def test_find_by_id_returns_sample_when_exists(self):
         """존재하는 ID로 조회하면 Sample을 반환한다."""
@@ -84,7 +96,7 @@ class TestSampleControllerFindById:
 
     def test_find_by_id_returns_none_when_not_exists(self):
         """존재하지 않는 ID로 조회하면 None을 반환한다."""
-        result = self.ctrl.find_by_id("S999")
+        result = self.ctrl.find_by_id("9999")
         assert result is None
 
 
@@ -92,8 +104,12 @@ class TestSampleControllerFindByName:
     """SampleController.find_by_name() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
         self.ctrl.create("DRAM-DDR5", 2.0, 0.8)
         self.ctrl.create("NAND Flash", 1.5, 0.7)
         self.ctrl.create("ARM CPU", 3.0, 0.9)
@@ -125,8 +141,12 @@ class TestSampleControllerUpdate:
     """SampleController.update() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
 
     def test_update_returns_true_when_exists(self):
         """존재하는 Sample을 업데이트하면 True를 반환한다."""
@@ -145,7 +165,7 @@ class TestSampleControllerUpdate:
 
     def test_update_returns_false_when_not_exists(self):
         """존재하지 않는 ID로 update하면 False를 반환한다."""
-        result = self.ctrl.update("S999", "XYZ", 1.0, 0.5)
+        result = self.ctrl.update("9999", "XYZ", 1.0, 0.5)
         assert result is False
 
 
@@ -153,8 +173,12 @@ class TestSampleControllerDelete:
     """SampleController.delete() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
 
     def test_delete_returns_true_when_exists(self):
         """존재하는 Sample을 삭제하면 True를 반환한다."""
@@ -170,7 +194,7 @@ class TestSampleControllerDelete:
 
     def test_delete_returns_false_when_not_exists(self):
         """존재하지 않는 ID로 delete하면 False를 반환한다."""
-        result = self.ctrl.delete("S999")
+        result = self.ctrl.delete("9999")
         assert result is False
 
 
@@ -178,8 +202,12 @@ class TestSampleControllerUpdateStock:
     """SampleController.update_stock() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
         from controllers.sample_controller import SampleController
-        self.ctrl = SampleController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.ctrl = SampleController(SampleRepository(db))
 
     def test_update_stock_increases_stock(self):
         """양수 delta로 재고가 증가한다."""
@@ -203,7 +231,7 @@ class TestSampleControllerUpdateStock:
 
     def test_update_stock_returns_false_when_not_exists(self):
         """존재하지 않는 ID로 update_stock하면 False를 반환한다."""
-        result = self.ctrl.update_stock("S999", 10)
+        result = self.ctrl.update_stock("9999", 10)
         assert result is False
 
 
@@ -215,34 +243,47 @@ class TestOrderControllerCreate:
     """OrderController.create() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
-        self.ctrl = OrderController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.sample_ctrl = SampleController(SampleRepository(db))
+        self.ctrl = OrderController(OrderRepository(db))
 
     def test_create_returns_order_instance(self):
         """create()는 Order 인스턴스를 반환한다."""
-        order = self.ctrl.create("S001", "고객A", 50)
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order = self.ctrl.create(sample.id, "고객A", 50)
         assert isinstance(order, Order)
 
-    def test_create_first_id_is_o1(self):
-        """첫 번째 생성된 Order의 ID는 'O1'이어야 한다."""
-        order = self.ctrl.create("S001", "고객A", 50)
-        assert order.id == "O1"
+    def test_create_first_order_id_is_assigned(self):
+        """첫 번째 생성된 Order에 DB 할당 ID가 부여된다."""
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order = self.ctrl.create(sample.id, "고객A", 50)
+        assert order.id is not None
 
-    def test_create_second_id_is_o2(self):
-        """두 번째 생성된 Order의 ID는 'O2'이어야 한다."""
-        self.ctrl.create("S001", "고객A", 50)
-        order2 = self.ctrl.create("S001", "고객B", 100)
-        assert order2.id == "O2"
+    def test_create_second_order_id_is_different_from_first(self):
+        """두 번째 생성된 Order의 ID는 첫 번째와 다르다."""
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order1 = self.ctrl.create(sample.id, "고객A", 50)
+        order2 = self.ctrl.create(sample.id, "고객B", 100)
+        assert order1.id != order2.id
 
     def test_create_initial_status_is_reserved(self):
         """생성된 Order의 초기 상태는 RESERVED이어야 한다."""
-        order = self.ctrl.create("S001", "고객A", 50)
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order = self.ctrl.create(sample.id, "고객A", 50)
         assert order.status == OrderStatus.RESERVED
 
     def test_create_stores_fields_correctly(self):
         """create()는 전달된 필드를 올바르게 저장한다."""
-        order = self.ctrl.create("S002", "고객B", 100)
-        assert order.sample_id == "S002"
+        sample1 = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        sample2 = self.sample_ctrl.create("NAND", 1.5, 0.7)
+        order = self.ctrl.create(sample2.id, "고객B", 100)
+        assert order.sample_id == sample2.id
         assert order.customer_name == "고객B"
         assert order.quantity == 100
 
@@ -251,8 +292,15 @@ class TestOrderControllerFindAll:
     """OrderController.find_all() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
-        self.ctrl = OrderController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.sample_ctrl = SampleController(SampleRepository(db))
+        self.ctrl = OrderController(OrderRepository(db))
 
     def test_find_all_empty_initially(self):
         """생성 전에는 빈 리스트를 반환한다."""
@@ -260,8 +308,9 @@ class TestOrderControllerFindAll:
 
     def test_find_all_returns_created_orders(self):
         """생성된 모든 Order를 반환한다."""
-        self.ctrl.create("S001", "고객A", 50)
-        self.ctrl.create("S001", "고객B", 100)
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        self.ctrl.create(sample.id, "고객A", 50)
+        self.ctrl.create(sample.id, "고객B", 100)
         result = self.ctrl.find_all()
         assert len(result) == 2
 
@@ -270,19 +319,27 @@ class TestOrderControllerFindById:
     """OrderController.find_by_id() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
-        self.ctrl = OrderController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.sample_ctrl = SampleController(SampleRepository(db))
+        self.ctrl = OrderController(OrderRepository(db))
 
     def test_find_by_id_returns_order_when_exists(self):
         """존재하는 ID로 조회하면 Order를 반환한다."""
-        order = self.ctrl.create("S001", "고객A", 50)
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order = self.ctrl.create(sample.id, "고객A", 50)
         result = self.ctrl.find_by_id(order.id)
         assert result is not None
         assert result.id == order.id
 
     def test_find_by_id_returns_none_when_not_exists(self):
         """존재하지 않는 ID로 조회하면 None을 반환한다."""
-        result = self.ctrl.find_by_id("O999")
+        result = self.ctrl.find_by_id("9999")
         assert result is None
 
 
@@ -290,10 +347,18 @@ class TestOrderControllerFindByStatus:
     """OrderController.find_by_status() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
-        self.ctrl = OrderController()
-        self.ctrl.create("S001", "고객A", 50)
-        self.ctrl.create("S001", "고객B", 100)
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.sample_ctrl = SampleController(SampleRepository(db))
+        self.ctrl = OrderController(OrderRepository(db))
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        self.ctrl.create(sample.id, "고객A", 50)
+        self.ctrl.create(sample.id, "고객B", 100)
 
     def test_find_by_status_returns_matching_orders(self):
         """해당 상태의 Order 목록을 반환한다."""
@@ -310,25 +375,34 @@ class TestOrderControllerUpdateStatus:
     """OrderController.update_status() 검증."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
-        self.ctrl = OrderController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.sample_ctrl = SampleController(SampleRepository(db))
+        self.ctrl = OrderController(OrderRepository(db))
 
     def test_update_status_returns_true_when_exists(self):
         """존재하는 Order 상태를 변경하면 True를 반환한다."""
-        order = self.ctrl.create("S001", "고객A", 50)
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order = self.ctrl.create(sample.id, "고객A", 50)
         result = self.ctrl.update_status(order.id, OrderStatus.CONFIRMED)
         assert result is True
 
     def test_update_status_changes_order_status(self):
         """update_status() 후 Order 상태가 변경된다."""
-        order = self.ctrl.create("S001", "고객A", 50)
+        sample = self.sample_ctrl.create("DRAM", 2.0, 0.8)
+        order = self.ctrl.create(sample.id, "고객A", 50)
         self.ctrl.update_status(order.id, OrderStatus.CONFIRMED)
         updated = self.ctrl.find_by_id(order.id)
         assert updated.status == OrderStatus.CONFIRMED
 
     def test_update_status_returns_false_when_not_exists(self):
         """존재하지 않는 ID로 update_status하면 False를 반환한다."""
-        result = self.ctrl.update_status("O999", OrderStatus.CONFIRMED)
+        result = self.ctrl.update_status("9999", OrderStatus.CONFIRMED)
         assert result is False
 
 
@@ -336,38 +410,60 @@ class TestOrderControllerUpdateStatus:
 # ProductionController 테스트
 # ---------------------------------------------------------------------------
 
+def _make_production_setup():
+    """ProductionController 테스트용 공통 setup — FK 제약 충족을 위해 sample/order 먼저 생성."""
+    from database.db_manager import DatabaseManager
+    from repositories.sample_repository import SampleRepository
+    from repositories.order_repository import OrderRepository
+    from repositories.production_job_repository import ProductionJobRepository
+    from controllers.sample_controller import SampleController
+    from controllers.order_controller import OrderController
+    from controllers.production_controller import ProductionController
+    DatabaseManager._instances = {}
+    db = DatabaseManager.get_instance(":memory:")
+    sample_ctrl = SampleController(SampleRepository(db))
+    order_ctrl = OrderController(OrderRepository(db))
+    prod_ctrl = ProductionController(ProductionJobRepository(db))
+    # FK 제약 충족을 위한 기본 데이터 생성
+    sample = sample_ctrl.create("DRAM", 2.0, 0.8)
+    order1 = order_ctrl.create(sample.id, "고객A", 100)
+    order2 = order_ctrl.create(sample.id, "고객B", 50)
+    order3 = order_ctrl.create(sample.id, "고객C", 80)
+    return prod_ctrl, sample.id, order1.id, order2.id, order3.id
+
+
 class TestProductionControllerEnqueue:
     """ProductionController.enqueue() 검증."""
 
     def setup_method(self):
-        from controllers.production_controller import ProductionController
-        self.ctrl = ProductionController()
+        result = _make_production_setup()
+        self.ctrl, self.sid, self.oid1, self.oid2, self.oid3 = result
 
     def test_enqueue_returns_production_job(self):
         """enqueue()는 ProductionJob 인스턴스를 반환한다."""
-        job = self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)
+        job = self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)
         assert isinstance(job, ProductionJob)
 
     def test_enqueue_first_job_is_in_progress(self):
-        """최초 enqueue 시 _current_job에 배치되어 IN_PROGRESS 상태가 된다."""
-        job = self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)
+        """최초 enqueue 시 IN_PROGRESS 상태가 된다."""
+        job = self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)
         assert job.status == JobStatus.IN_PROGRESS
 
     def test_enqueue_second_job_is_waiting(self):
-        """두 번째 enqueue는 _queue에 추가되어 WAITING 상태이다."""
-        self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)
-        job2 = self.ctrl.enqueue("O2", "S001", 50, 0.8, 2.0)
+        """두 번째 enqueue는 WAITING 상태이다."""
+        self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)
+        job2 = self.ctrl.enqueue(self.oid2, self.sid, 50, 0.8, 2.0)
         assert job2.status == JobStatus.WAITING
 
     def test_enqueue_stores_order_and_sample_ids(self):
         """enqueue()는 order_id, sample_id를 올바르게 저장한다."""
-        job = self.ctrl.enqueue("O5", "S003", 200, 0.9, 1.5)
-        assert job.order_id == "O5"
-        assert job.sample_id == "S003"
+        job = self.ctrl.enqueue(self.oid1, self.sid, 200, 0.9, 1.5)
+        assert job.order_id == self.oid1
+        assert job.sample_id == self.sid
 
     def test_enqueue_stores_planned_quantity(self):
         """enqueue()는 planned_quantity를 올바르게 저장한다."""
-        job = self.ctrl.enqueue("O1", "S001", 150, 0.8, 2.0)
+        job = self.ctrl.enqueue(self.oid1, self.sid, 150, 0.8, 2.0)
         assert job.planned_quantity == 150
 
 
@@ -375,8 +471,8 @@ class TestProductionControllerFindInProgress:
     """ProductionController.find_in_progress() 검증."""
 
     def setup_method(self):
-        from controllers.production_controller import ProductionController
-        self.ctrl = ProductionController()
+        result = _make_production_setup()
+        self.ctrl, self.sid, self.oid1, self.oid2, self.oid3 = result
 
     def test_find_in_progress_returns_none_initially(self):
         """enqueue 전에는 None을 반환한다."""
@@ -384,7 +480,7 @@ class TestProductionControllerFindInProgress:
 
     def test_find_in_progress_returns_current_job(self):
         """enqueue 후 현재 IN_PROGRESS 작업을 반환한다."""
-        job = self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)
+        job = self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)
         result = self.ctrl.find_in_progress()
         assert result is not None
         assert result.job_id == job.job_id
@@ -395,8 +491,8 @@ class TestProductionControllerFindWaitingQueue:
     """ProductionController.find_waiting_queue() 검증."""
 
     def setup_method(self):
-        from controllers.production_controller import ProductionController
-        self.ctrl = ProductionController()
+        result = _make_production_setup()
+        self.ctrl, self.sid, self.oid1, self.oid2, self.oid3 = result
 
     def test_find_waiting_queue_empty_initially(self):
         """enqueue 전에는 빈 리스트를 반환한다."""
@@ -404,17 +500,17 @@ class TestProductionControllerFindWaitingQueue:
 
     def test_find_waiting_queue_returns_waiting_jobs(self):
         """대기 중인 작업 목록을 반환한다."""
-        self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)  # IN_PROGRESS
-        self.ctrl.enqueue("O2", "S001", 50, 0.8, 2.0)   # WAITING
-        self.ctrl.enqueue("O3", "S001", 80, 0.8, 2.0)   # WAITING
+        self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)  # IN_PROGRESS
+        self.ctrl.enqueue(self.oid2, self.sid, 50, 0.8, 2.0)   # WAITING
+        self.ctrl.enqueue(self.oid3, self.sid, 80, 0.8, 2.0)   # WAITING
         result = self.ctrl.find_waiting_queue()
         assert len(result) == 2
 
     def test_find_waiting_queue_returns_jobs_in_queue_order(self):
         """대기 큐는 queue_order ASC 순서(FIFO)로 반환한다."""
-        self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)  # IN_PROGRESS
-        job_b = self.ctrl.enqueue("O2", "S001", 50, 0.8, 2.0)   # WAITING, queue_order=1
-        job_c = self.ctrl.enqueue("O3", "S001", 80, 0.8, 2.0)   # WAITING, queue_order=2
+        self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)  # IN_PROGRESS
+        job_b = self.ctrl.enqueue(self.oid2, self.sid, 50, 0.8, 2.0)   # WAITING
+        job_c = self.ctrl.enqueue(self.oid3, self.sid, 80, 0.8, 2.0)   # WAITING
         result = self.ctrl.find_waiting_queue()
         assert result[0].job_id == job_b.job_id
         assert result[1].job_id == job_c.job_id
@@ -424,19 +520,19 @@ class TestProductionControllerUpdateStatus:
     """ProductionController.update_status() 검증."""
 
     def setup_method(self):
-        from controllers.production_controller import ProductionController
-        self.ctrl = ProductionController()
+        result = _make_production_setup()
+        self.ctrl, self.sid, self.oid1, self.oid2, self.oid3 = result
 
     def test_update_status_to_completed_returns_true(self):
         """IN_PROGRESS 작업을 COMPLETED로 변경하면 True를 반환한다."""
-        job = self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)
+        job = self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)
         result = self.ctrl.update_status(job.job_id, JobStatus.COMPLETED)
         assert result is True
 
     def test_update_status_completed_triggers_next_job(self):
         """COMPLETED 처리 후 _try_start_next()가 호출되어 다음 WAITING 작업이 IN_PROGRESS로 전환된다."""
-        job_a = self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)  # IN_PROGRESS
-        job_b = self.ctrl.enqueue("O2", "S001", 50, 0.8, 2.0)   # WAITING
+        job_a = self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)  # IN_PROGRESS
+        job_b = self.ctrl.enqueue(self.oid2, self.sid, 50, 0.8, 2.0)   # WAITING
         self.ctrl.update_status(job_a.job_id, JobStatus.COMPLETED)
         current = self.ctrl.find_in_progress()
         assert current is not None
@@ -444,14 +540,14 @@ class TestProductionControllerUpdateStatus:
         assert current.status == JobStatus.IN_PROGRESS
 
     def test_update_status_completed_clears_current_job_when_no_waiting(self):
-        """COMPLETED 처리 후 대기 큐가 비어 있으면 _current_job이 None이 된다."""
-        job = self.ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)
+        """COMPLETED 처리 후 대기 큐가 비어 있으면 find_in_progress()가 None이 된다."""
+        job = self.ctrl.enqueue(self.oid1, self.sid, 100, 0.8, 2.0)
         self.ctrl.update_status(job.job_id, JobStatus.COMPLETED)
         assert self.ctrl.find_in_progress() is None
 
     def test_update_status_returns_false_when_not_exists(self):
         """존재하지 않는 job_id로 update_status하면 False를 반환한다."""
-        result = self.ctrl.update_status("J999", JobStatus.COMPLETED)
+        result = self.ctrl.update_status("9999", JobStatus.COMPLETED)
         assert result is False
 
 
@@ -460,12 +556,11 @@ class TestProductionControllerFifo:
 
     def test_fifo_order_a_b_c_completes_in_order(self):
         """작업 A→B→C 순서로 enqueue 후 완료 순서가 A→B→C임을 확인한다."""
-        from controllers.production_controller import ProductionController
-        ctrl = ProductionController()
+        ctrl, sid, oid1, oid2, oid3 = _make_production_setup()
 
-        job_a = ctrl.enqueue("O1", "S001", 100, 0.8, 2.0)  # IN_PROGRESS
-        job_b = ctrl.enqueue("O2", "S001", 50, 0.8, 2.0)   # WAITING
-        job_c = ctrl.enqueue("O3", "S001", 80, 0.8, 2.0)   # WAITING
+        job_a = ctrl.enqueue(oid1, sid, 100, 0.8, 2.0)  # IN_PROGRESS
+        job_b = ctrl.enqueue(oid2, sid, 50, 0.8, 2.0)   # WAITING
+        job_c = ctrl.enqueue(oid3, sid, 80, 0.8, 2.0)   # WAITING
 
         # A 완료 → B가 IN_PROGRESS
         ctrl.update_status(job_a.job_id, JobStatus.COMPLETED)
@@ -481,21 +576,27 @@ class TestProductionControllerFifo:
 
 
 # ---------------------------------------------------------------------------
-# View 테스트 (의존성 주입 방식)
+# View 테스트 (의존성 주입 방식 — DB 기반)
 # ---------------------------------------------------------------------------
 
 class TestProductionViewSampleList:
     """ProductionView 시료 목록 출력 테스트."""
 
     def setup_method(self):
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from repositories.production_job_repository import ProductionJobRepository
         from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
         from controllers.production_controller import ProductionController
         from views.production_view import ProductionView
 
-        self.sample_ctrl = SampleController()
-        self.order_ctrl = OrderController()
-        self.prod_ctrl = ProductionController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        self.sample_ctrl = SampleController(SampleRepository(db))
+        self.order_ctrl = OrderController(OrderRepository(db))
+        self.prod_ctrl = ProductionController(ProductionJobRepository(db))
 
         self.sample_ctrl.create("DRAM", 2.0, 0.8, initial_stock=100)
         self.sample_ctrl.create("NAND", 1.5, 0.7, initial_stock=50)
@@ -532,14 +633,20 @@ class TestProductionViewApproveWithStock:
 
     def test_approve_with_stock_transitions_to_confirmed(self):
         """재고 충분 시 승인하면 주문이 CONFIRMED 상태로 전환된다."""
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from repositories.production_job_repository import ProductionJobRepository
         from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
         from controllers.production_controller import ProductionController
         from views.production_view import ProductionView
 
-        sample_ctrl = SampleController()
-        order_ctrl = OrderController()
-        prod_ctrl = ProductionController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        sample_ctrl = SampleController(SampleRepository(db))
+        order_ctrl = OrderController(OrderRepository(db))
+        prod_ctrl = ProductionController(ProductionJobRepository(db))
 
         sample = sample_ctrl.create("DRAM", 2.0, 0.8, initial_stock=100)
         order = order_ctrl.create(sample.id, "고객A", 50)
@@ -563,14 +670,20 @@ class TestProductionViewApproveWithoutStock:
 
     def test_approve_without_stock_transitions_to_producing_and_enqueues(self):
         """재고 부족 시 승인하면 PRODUCING으로 전환되고 생산 큐에 등록된다."""
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from repositories.production_job_repository import ProductionJobRepository
         from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
         from controllers.production_controller import ProductionController
         from views.production_view import ProductionView
 
-        sample_ctrl = SampleController()
-        order_ctrl = OrderController()
-        prod_ctrl = ProductionController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        sample_ctrl = SampleController(SampleRepository(db))
+        order_ctrl = OrderController(OrderRepository(db))
+        prod_ctrl = ProductionController(ProductionJobRepository(db))
 
         sample = sample_ctrl.create("DRAM", 2.0, 0.8, initial_stock=0)
         order = order_ctrl.create(sample.id, "고객A", 50)
@@ -596,14 +709,20 @@ class TestProductionViewReject:
 
     def test_reject_transitions_to_rejected(self):
         """거절 처리 시 RESERVED → REJECTED로 전환된다."""
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from repositories.production_job_repository import ProductionJobRepository
         from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
         from controllers.production_controller import ProductionController
         from views.production_view import ProductionView
 
-        sample_ctrl = SampleController()
-        order_ctrl = OrderController()
-        prod_ctrl = ProductionController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        sample_ctrl = SampleController(SampleRepository(db))
+        order_ctrl = OrderController(OrderRepository(db))
+        prod_ctrl = ProductionController(ProductionJobRepository(db))
 
         sample = sample_ctrl.create("DRAM", 2.0, 0.8)
         order = order_ctrl.create(sample.id, "고객A", 50)
@@ -627,14 +746,20 @@ class TestOrderViewRelease:
 
     def test_release_transitions_confirmed_to_release(self):
         """출고 처리 시 CONFIRMED → RELEASE로 전환된다."""
+        from database.db_manager import DatabaseManager
+        from repositories.sample_repository import SampleRepository
+        from repositories.order_repository import OrderRepository
+        from repositories.production_job_repository import ProductionJobRepository
         from controllers.sample_controller import SampleController
         from controllers.order_controller import OrderController
         from controllers.production_controller import ProductionController
         from views.order_view import OrderView
 
-        sample_ctrl = SampleController()
-        order_ctrl = OrderController()
-        prod_ctrl = ProductionController()
+        DatabaseManager._instances = {}
+        db = DatabaseManager.get_instance(":memory:")
+        sample_ctrl = SampleController(SampleRepository(db))
+        order_ctrl = OrderController(OrderRepository(db))
+        prod_ctrl = ProductionController(ProductionJobRepository(db))
 
         sample = sample_ctrl.create("DRAM", 2.0, 0.8)
         order = order_ctrl.create(sample.id, "고객A", 50)

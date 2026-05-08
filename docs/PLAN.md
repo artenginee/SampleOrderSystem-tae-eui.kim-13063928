@@ -408,7 +408,7 @@ class SampleController(ISampleController):
 
 # 변경 후 (Repository 주입)
 class SampleController(ISampleController):
-    def __init__(self, repo: ISampleRepository):
+    def __init__(self, repo: SampleRepository):
         self._repo = repo
 ```
 
@@ -420,7 +420,7 @@ order_repo  = OrderRepository(db)
 job_repo    = ProductionJobRepository(db)
 
 sample_ctrl = SampleController(sample_repo)
-order_ctrl  = OrderController(order_repo, sample_repo)
+order_ctrl  = OrderController(order_repo)
 prod_ctrl   = ProductionController(job_repo)
 
 MainView(sample_ctrl, order_ctrl, prod_ctrl).run()
@@ -622,7 +622,7 @@ class DBMonitorAdapter(IMonitorDataProvider):
 | Phase 1: 도메인 모델 구현 | 🟢 GREEN | — | tests/test_models.py |
 | Phase 2: MVC 골격 (인메모리) | 🟢 GREEN | POC1 | tests/test_controllers.py |
 | Phase 3: SQLite 영속성 계층 | 🟢 GREEN | POC2 | tests/test_repositories.py, tests/test_db_manager.py |
-| Phase 4: 컨트롤러 DB 연동 | ⬜ 미시작 | POC1+2 | (기존 테스트로 검증) |
+| Phase 4: 컨트롤러 DB 연동 | 🟢 GREEN | POC1+2 | (기존 테스트로 검증) |
 | Phase 5: 더미 데이터 생성 도구 | ⬜ 미시작 | POC4 | tests/test_generators.py |
 | Phase 6: 데이터 모니터링 도구 | ⬜ 미시작 | POC3 | tests/test_monitor.py |
 | Phase 7: E2E 통합 시나리오 | ⬜ 미시작 | — | tests/test_e2e.py |
