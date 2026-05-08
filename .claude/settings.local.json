@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pip install *)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//c/tmp/**)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/artenginee/ConsoleMVC-tae-eui.kim-13063928/HEAD/models/production_job.py\")",
+      "Bash(Remove-Item *)",
+      "PowerShell(New-Item *)",
+      "Bash(git reset *)",
+      "Bash(Get-ChildItem -Recurse .claude, docs -File)",
+      "Bash(Select-Object FullName)",
+      "Bash(git add *)"
+    ]
+  }
+}
