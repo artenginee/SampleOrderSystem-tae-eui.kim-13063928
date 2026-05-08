@@ -192,5 +192,5 @@ CONFIRMED →  RELEASE     (release)
 
 ## 현재 상태
 
-**Phase 1 — 미시작**  
-`tests/test_models.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
+**Phase 1 — 완료 (🟢 GREEN)**  
+**Phase 2 — 진행 중**: `tests/test_controllers.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
