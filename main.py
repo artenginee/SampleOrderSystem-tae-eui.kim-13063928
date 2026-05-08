@@ -1,3 +1,5 @@
+import os
+
 from database.db_manager import DatabaseManager
 from repositories.sample_repository import SampleRepository
 from repositories.order_repository import OrderRepository
@@ -7,8 +9,12 @@ from controllers.order_controller import OrderController
 from controllers.production_controller import ProductionController
 from views.main_view import MainView
 
+DB_PATH = "data/order_system.db"
+
 if __name__ == "__main__":
-    db          = DatabaseManager.get_instance()
+    os.makedirs("data", exist_ok=True)
+
+    db          = DatabaseManager.get_instance(DB_PATH)
     sample_repo = SampleRepository(db)
     order_repo  = OrderRepository(db)
     job_repo    = ProductionJobRepository(db)
@@ -17,4 +23,4 @@ if __name__ == "__main__":
     order_ctrl  = OrderController(order_repo)
     prod_ctrl   = ProductionController(job_repo)
 
-    MainView(sample_ctrl, order_ctrl, prod_ctrl).run()
+    MainView(sample_ctrl, order_ctrl, prod_ctrl, db_path=DB_PATH).run()
