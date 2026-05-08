@@ -611,10 +611,10 @@ class TestProductionViewSampleList:
         )
 
     def test_sample_list_output_contains_sample_names(self):
-        """시료 목록 출력 시 시료 이름이 포함된다."""
+        """시료 관리 진입 시 시료 목록이 자동 표시된다."""
         from views.production_view import ProductionView
-        # 시료 관리(1) → 목록 보기(2) → 뒤로(0) 시뮬레이션
-        inputs = iter(["1", "2", "0", "0"])
+        # 시료 관리(1) 진입 → 자동으로 목록 표시 → 뒤로(0) → 뒤로(0)
+        inputs = iter(["1", "0", "0"])
         self.view = ProductionView(
             self.sample_ctrl,
             self.order_ctrl,

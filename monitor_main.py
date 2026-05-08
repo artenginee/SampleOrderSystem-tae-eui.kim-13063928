@@ -15,6 +15,9 @@ def main():
     parser.add_argument("--db", default="data/order_system.db", help="DB 경로")
     args = parser.parse_args()
 
+    import os
+    os.makedirs(os.path.dirname(args.db) or ".", exist_ok=True)
+
     db = DatabaseManager.get_instance(args.db)
     provider = DBMonitorAdapter(db)
     dashboard = Dashboard(provider, interval=args.interval)
