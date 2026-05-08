@@ -123,10 +123,11 @@ def test_scenario2_calculate_production_quantity(setup):
     db, sample_ctrl, order_ctrl, prod_ctrl = setup
     sample = sample_ctrl.create("NAND", 1.5, 0.7, initial_stock=0)
 
+    from math import ceil
     shortage = max(0, 50 - sample.stock)  # 50 - 0 = 50
     planned_qty = sample.calculate_production_quantity(shortage)
-    # int(50 / 0.7 * 0.9) = int(64.28...) = 64
-    assert planned_qty == int(50 / 0.7 * 0.9)
+    # ceil(50 / (0.7 * 0.9)) = ceil(79.4) = 80
+    assert planned_qty == ceil(50 / (0.7 * 0.9))
 
 
 def test_scenario2_enqueue_creates_in_progress_job(setup):

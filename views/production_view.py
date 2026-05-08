@@ -155,18 +155,24 @@ class ProductionView(BaseView):
         sample = self._sample_ctrl.find_by_id(job.sample_id)
         customer = order.customer_name if order else f"주문#{job.order_id}"
         sname = sample.name if sample else f"시료#{job.sample_id}"
-        order_qty = order.quantity if order else "?"
+        order_qty = order.quantity if order else 0
+        stock = sample.stock if sample else 0
+        shortage = max(0, order_qty - stock)
+        yield_pct = f"{sample.yield_rate:.1%}" if sample else "?"
         return [
             f"고객: {customer}",
-            f"시료: {sname}",
-            f"주문량: {order_qty}개  →  계획 생산량: {job.planned_quantity}개",
+            f"시료: {sname}  (유효수율 {yield_pct})",
+            f"주문: {order_qty}개 | 재고: {stock}개 | 부족: {shortage}개",
+            f"계획 생산량: {job.planned_quantity}개",
             f"소요시간: {job.total_time_min:.1f}h  {status_badge('IN_PROGRESS')}",
         ]
 
     def _queue_row(self, rank: int, job) -> str:
         order = self._order_ctrl.find_by_id(job.order_id)
         sample = self._sample_ctrl.find_by_id(job.sample_id)
-        customer = (order.customer_name[:12] if order else f"#{job.order_id}")
-        sname = (sample.name[:14] if sample else f"#{job.sample_id}")
-        qty = order.quantity if order else "?"
-        return f"[{rank}] {customer}  {sname}  {qty}개→{job.planned_quantity}개"
+        customer = (order.customer_name[:10] if order else f"#{job.order_id}")
+        sname = (sample.name[:12] if sample else f"#{job.sample_id}")
+        order_qty = order.quantity if order else 0
+        stock = sample.stock if sample else 0
+        shortage = max(0, order_qty - stock)
+        return f"[{rank}] {customer}  {sname}  부족:{shortage}개 → 계획:{job.planned_quantity}개"

@@ -15,18 +15,20 @@ from models.production_job import ProductionJob, JobStatus
 class TestSampleCalculateProductionQuantity:
     """calculate_production_quantity(shortage) 검증."""
 
-    def test_calculate_production_quantity_returns_int_floor_division(self):
-        """공식: int(shortage / yield_rate * 0.9) 결과가 정수형 절삭인지 확인."""
+    def test_calculate_production_quantity_covers_shortage(self):
+        """계획 생산량 × 유효수율(yield×0.9) ≥ shortage 를 보장한다 (올림 적용)."""
+        from math import ceil
         sample = Sample(id="S001", name="DRAM", avg_production_time=2.0, yield_rate=0.8, stock=0)
         shortage = 100
-        expected = int(shortage / sample.yield_rate * 0.9)
+        expected = ceil(shortage / (sample.yield_rate * 0.9))  # = 139
         assert sample.calculate_production_quantity(shortage) == expected
 
-    def test_calculate_production_quantity_with_fractional_result(self):
-        """소수점 결과가 발생할 때 int 절삭(floor)이 적용된다."""
+    def test_calculate_production_quantity_ceil_applied(self):
+        """소수 결과는 올림(ceil)하여 부족분을 반드시 충족한다."""
+        from math import ceil
         sample = Sample(id="S002", name="NAND", avg_production_time=1.5, yield_rate=0.7, stock=0)
         shortage = 50
-        expected = int(shortage / sample.yield_rate * 0.9)
+        expected = ceil(shortage / (sample.yield_rate * 0.9))
         assert sample.calculate_production_quantity(shortage) == expected
 
     def test_calculate_production_quantity_shortage_zero_returns_zero(self):
