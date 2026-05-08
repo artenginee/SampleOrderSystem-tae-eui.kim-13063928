@@ -82,7 +82,7 @@ SampleOrderSystem/
 ├── repositories/        # DB CRUD 계층 (BaseRepository 상속)
 ├── controllers/         # 비즈니스 로직, 인터페이스 구현, Repository 주입받음
 ├── views/               # 콘솔 UI, 컨트롤러 인터페이스만 호출
-├── monitor/             # 별도 모니터링 도구 (dashboard, renderer, panels)
+├── monitor/             # 별도 모니터링 도구 (interfaces, adapters, dashboard, renderer, panels)
 ├── generators/          # 더미 데이터 생성 도구
 ├── utils/               # 커스텀 예외 등
 ├── main.py              # 메인 애플리케이션 진입점
@@ -196,4 +196,5 @@ CONFIRMED →  RELEASE     (release)
 **Phase 2 — 완료 (🟢 GREEN)**  
 **Phase 3 — 완료 (🟢 GREEN)**  
 **Phase 4 — 완료 (🟢 GREEN)**  
-**Phase 5 — 진행 중**: `tests/test_generators.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
+**Phase 5 — 완료 (🟢 GREEN)**  
+**Phase 6 — 진행 중**: `tests/test_monitor.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
