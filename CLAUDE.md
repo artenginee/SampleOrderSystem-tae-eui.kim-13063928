@@ -197,4 +197,5 @@ CONFIRMED →  RELEASE     (release)
 **Phase 3 — 완료 (🟢 GREEN)**  
 **Phase 4 — 완료 (🟢 GREEN)**  
 **Phase 5 — 완료 (🟢 GREEN)**  
-**Phase 6 — 진행 중**: `tests/test_monitor.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
+**Phase 6 — 완료 (🟢 GREEN)**  
+**Phase 7 — 진행 중**: `tests/test_e2e.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
