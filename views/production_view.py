@@ -129,19 +129,11 @@ class ProductionView(BaseView):
             queue = self._prod_ctrl.find_waiting_queue()
 
             if current:
-                self._card("현재 생산", [
-                    f"작업 [{current.job_id}]  주문 #{current.order_id}  "
-                    f"계획량 {current.planned_quantity}개",
-                    f"총 소요시간: {current.total_time_min:.1f}h  "
-                    f"{status_badge('IN_PROGRESS')}",
-                ])
+                self._card("현재 생산", self._job_rows(current))
             else:
                 self._card("현재 생산", ["(생산 중인 작업 없음)"])
 
-            q_rows = [
-                f"[{i}] 작업 {j.job_id}  주문 #{j.order_id}  계획량 {j.planned_quantity}개"
-                for i, j in enumerate(queue, 1)
-            ] or ["(대기 없음)"]
+            q_rows = [self._queue_row(i, j) for i, j in enumerate(queue, 1)] or ["(대기 없음)"]
             self._card(f"대기 큐 ({len(queue)}개)", q_rows)
 
             self._output("1. 생산 완료 처리   0. 뒤로" if current else "0. 뒤로")
@@ -149,9 +141,32 @@ class ProductionView(BaseView):
             if choice == "1" and current:
                 self._prod_ctrl.update_status(current.job_id, JobStatus.COMPLETED)
                 self._order_ctrl.update_status(current.order_id, OrderStatus.CONFIRMED)
+                order = self._order_ctrl.find_by_id(current.order_id)
+                customer = order.customer_name if order else current.order_id
                 self._output(
-                    f"→ 생산 완료: [{current.job_id}]  "
-                    f"주문 [{current.order_id}] {status_badge('CONFIRMED')}"
+                    f"→ 생산 완료: 작업[{current.job_id}]  "
+                    f"{customer} {status_badge('CONFIRMED')}"
                 )
             elif choice == "0":
                 break
+
+    def _job_rows(self, job) -> list:
+        order = self._order_ctrl.find_by_id(job.order_id)
+        sample = self._sample_ctrl.find_by_id(job.sample_id)
+        customer = order.customer_name if order else f"주문#{job.order_id}"
+        sname = sample.name if sample else f"시료#{job.sample_id}"
+        order_qty = order.quantity if order else "?"
+        return [
+            f"고객: {customer}",
+            f"시료: {sname}",
+            f"주문량: {order_qty}개  →  계획 생산량: {job.planned_quantity}개",
+            f"소요시간: {job.total_time_min:.1f}h  {status_badge('IN_PROGRESS')}",
+        ]
+
+    def _queue_row(self, rank: int, job) -> str:
+        order = self._order_ctrl.find_by_id(job.order_id)
+        sample = self._sample_ctrl.find_by_id(job.sample_id)
+        customer = (order.customer_name[:12] if order else f"#{job.order_id}")
+        sname = (sample.name[:14] if sample else f"#{job.sample_id}")
+        qty = order.quantity if order else "?"
+        return f"[{rank}] {customer}  {sname}  {qty}개→{job.planned_quantity}개"
