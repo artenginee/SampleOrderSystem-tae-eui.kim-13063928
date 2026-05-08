@@ -145,7 +145,8 @@ class Sample:
     stock: int = 0
 
     def calculate_production_quantity(self, shortage: int) -> int:
-        # int(shortage / yield_rate * 0.9)
+        # PRD 공식: int(shortage / yield_rate * 0.9)  ← 도메인 모델 기준 (절삭)
+        # Phase 5 generators는 POC4 기준 ceil(shortage / (yield_rate * 0.9)) 사용 — 의도적 차이
 
     def calculate_total_production_time(self, shortage: int) -> float:
         # avg_production_time × 실 생산량
@@ -618,7 +619,7 @@ class DBMonitorAdapter(IMonitorDataProvider):
 
 | Phase | 상태 | 참고 POC | 테스트 파일 |
 |-------|------|----------|------------|
-| Phase 1: 도메인 모델 구현 | ⬜ 미시작 | — | tests/test_models.py |
+| Phase 1: 도메인 모델 구현 | 🟢 GREEN | — | tests/test_models.py |
 | Phase 2: MVC 골격 (인메모리) | ⬜ 미시작 | POC1 | tests/test_controllers.py |
 | Phase 3: SQLite 영속성 계층 | ⬜ 미시작 | POC2 | tests/test_repositories.py, tests/test_db_manager.py |
 | Phase 4: 컨트롤러 DB 연동 | ⬜ 미시작 | POC1+2 | (기존 테스트로 검증) |

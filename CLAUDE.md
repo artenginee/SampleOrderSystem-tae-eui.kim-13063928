@@ -192,6 +192,5 @@ CONFIRMED →  RELEASE     (release)
 
 ## 현재 상태
 
-**Phase 1 — RED** (10 FAILED, 3 PASSED)  
-`src/models/`의 메서드가 `NotImplementedError` stub. Phase 1 구현부터 시작한다.  
-상세 계획은 `docs/PLAN.md` 참조.
+**Phase 1 — 미시작**  
+`tests/test_models.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
