@@ -195,4 +195,5 @@ CONFIRMED →  RELEASE     (release)
 **Phase 1 — 완료 (🟢 GREEN)**  
 **Phase 2 — 완료 (🟢 GREEN)**  
 **Phase 3 — 완료 (🟢 GREEN)**  
-**Phase 4 — 진행 중**: 컨트롤러를 Repository 주입 방식으로 교체한다. 상세 계획은 `docs/PLAN.md` 참조.
+**Phase 4 — 완료 (🟢 GREEN)**  
+**Phase 5 — 진행 중**: `tests/test_generators.py` 작성부터 시작한다. 상세 계획은 `docs/PLAN.md` 참조.
