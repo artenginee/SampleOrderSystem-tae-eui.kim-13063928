@@ -3,6 +3,15 @@
 DB 경로는 생성자 파라미터로 전달받으며 하드코딩하지 않는다.
 """
 import os
+import sys
+
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
+
 from database.db_manager import DatabaseManager
 from repositories.sample_repository import SampleRepository
 from repositories.order_repository import OrderRepository

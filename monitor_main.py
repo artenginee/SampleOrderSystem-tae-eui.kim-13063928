@@ -3,6 +3,14 @@ monitor_main.py — 모니터링 대시보드 진입점.
 실행: python monitor_main.py [--interval 초] [--db 경로]
 """
 import argparse
+import sys
+
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except AttributeError:
+        pass
 
 from database.db_manager import DatabaseManager
 from monitor.adapters import DBMonitorAdapter
